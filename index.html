@@ -5,35 +5,35 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>Dialyzer Valve Controller</title>
 <style>
-  /* --- Force DARK THEME in all browsers (no light mode overrides) --- */
   :root{
-    --bg:#0f1115; --card:#151922; --muted:#a5adcb; --text:#e6eaf2; --accent:#7aa2f7; --ok:#3ccf91; --warn:#ffcc66; --err:#ff6b6b; --line:#222636;
+    --bg: #0f1115; --card:#151922; --muted:#a5adcb; --text:#e6eaf2; --accent:#7aa2f7; --ok:#3ccf91; --warn:#ffcc66; --err:#ff6b6b; --line:#222636;
     --btn:#1b2030; --btn-hover:#232a3c; --chip:#1a2130;
-    --shadow:0 10px 30px rgba(0,0,0,.35);
-    --radius:14px;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --radius: 14px;
+  }
+  @media (prefers-color-scheme: light){
+    :root{ --bg:#f7f8fb; --card:#ffffff; --muted:#54607a; --text:#0b1020; --accent:#2f6bff; --ok:#0e9f6e; --warn:#b98900; --err:#c03c3c; --line:#e7e9f0; --btn:#eef2fb; --btn-hover:#e3e8f7; --chip:#eef2fb; }
   }
   *{ box-sizing:border-box }
   html,body{ height:100% }
   body{
-    margin:0; background:var(--bg); color:var(--text);
-    font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+    margin:0; background:var(--bg); color:var(--text); font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
   }
   .wrap{ max-width:1200px; margin:32px auto; padding:0 20px; }
+  /* Header */
   .bar{
-    display:flex; align-items:center; gap:16px; background:var(--card);
-    padding:14px 16px; border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+    display:flex; align-items:center; gap:16px; background:var(--card); padding:14px 16px; border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
   }
   .title{ font-size:18px; font-weight:700; letter-spacing:.2px; display:flex; align-items:center; gap:10px }
-  .title svg{ width:20px; height:20px }
+  .title svg{ width:20px; height:20px; }
   .sp{ flex:1 }
   .pill{
-    display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px;
-    background:var(--chip); border:1px solid var(--line); color:var(--muted);
+    display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background:var(--chip); border:1px solid var(--line); color:var(--muted);
   }
   .dot{ width:8px; height:8px; border-radius:50%; background:#ff6b6b; box-shadow:0 0 0 0 rgba(255,107,107,.6); animation:pulse 2s infinite; }
   .dot.ok{ background:var(--ok); box-shadow:0 0 0 0 rgba(60,207,145,.5) }
-  @keyframes pulse{
-    0%{ box-shadow:0 0 0 0 rgba(255,107,107,.6) }
+  @keyframes pulse {
+    0% { box-shadow:0 0 0 0 rgba(255,107,107,.6) }
     70%{ box-shadow:0 0 0 10px rgba(255,107,107,0) }
     100%{ box-shadow:0 0 0 0 rgba(255,107,107,0) }
   }
@@ -41,11 +41,12 @@
   select,input,button{
     background:var(--btn); color:var(--text); border:1px solid var(--line); border-radius:10px; padding:10px 12px; outline:none;
   }
-  button{ cursor:pointer; transition:background .15s ease }
+  button{ cursor:pointer; transition:all .15s ease }
   button:hover{ background:var(--btn-hover) }
   .btn-primary{ background:linear-gradient(180deg, var(--accent), #4f7ffb); border:none; color:#fff; font-weight:600 }
   .btn-ghost{ background:transparent; border:1px dashed var(--line); color:var(--muted) }
   .btn-danger{ background:linear-gradient(180deg, #ff7c7c, #e55757); border:none; color:#fff; font-weight:600 }
+  /* Grid cards */
   .grid{ display:grid; grid-template-columns:repeat(12,1fr); gap:16px; margin-top:18px }
   @media (max-width:1100px){ .grid{ grid-template-columns:repeat(6,1fr) } }
   @media (max-width:700px){ .grid{ grid-template-columns:repeat(1,1fr) } }
@@ -54,25 +55,22 @@
   }
   .card h3{ margin:0 0 10px; font-size:16px; letter-spacing:.2px }
   .muted{ color:var(--muted) }
+  /* Buttons grid */
   .btns{ display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px }
   .chip{
-    display:inline-flex; align-items:center; gap:8px; padding:6px 8px; border-radius:999px;
-    background:var(--chip); border:1px solid var(--line); color:var(--muted); font-size:12px;
+    display:inline-flex; align-items:center; gap:8px; padding:6px 8px; border-radius:999px; background:var(--chip); border:1px solid var(--line); color:var(--muted); font-size:12px;
   }
-  .kbd{ font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; background:#0b0e14; border:1px solid var(--line); padding:2px 6px; border-radius:6px }
+  .kbd{ font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:var(--bg); border:1px solid var(--line); padding:2px 6px; border-radius:6px }
+  /* Log */
   #log{
-    background:#0b0e14; color:#d2e1ff; border:1px solid var(--line); border-radius:12px;
-    min-height:260px; max-height:360px; overflow:auto; padding:12px;
-    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12.5px;
+    background: #0b0e14; color:#d2e1ff; border:1px solid var(--line); border-radius:12px; min-height:260px; max-height:360px; overflow:auto; padding:12px; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12.5px;
   }
   .toolbar{ display:flex; gap:10px; align-items:center; justify-content:flex-end; margin-bottom:10px }
+  /* Toasts */
   .toasts{ position:fixed; right:18px; bottom:18px; display:flex; flex-direction:column; gap:10px; z-index:99 }
-  .toast{
-    background:var(--card); border:1px solid var(--line); border-left:4px solid var(--accent); color:var(--text);
-    padding:10px 12px; border-radius:10px; box-shadow:var(--shadow); min-width:240px;
-    transition:opacity .25s ease;
-  }
+  .toast{ background:var(--card); border:1px solid var(--line); border-left:4px solid var(--accent); color:var(--text); padding:10px 12px; border-radius:10px; box-shadow:var(--shadow); min-width:240px }
   .toast.ok{ border-left-color:var(--ok) } .toast.err{ border-left-color:var(--err) } .toast.warn{ border-left-color:var(--warn) }
+  /* Footer */
   .foot{ display:flex; align-items:center; justify-content:space-between; color:var(--muted); margin-top:12px; font-size:12px }
   .link{ color:var(--accent); text-decoration:none }
   .input-grow{ flex:1; min-width:220px }
@@ -80,8 +78,10 @@
 </head>
 <body>
   <div class="wrap">
+    <!-- Top bar -->
     <div class="bar">
       <div class="title">
+        <!-- inline logo -->
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l7 4v6c0 5-3.5 7.5-7 10-3.5-2.5-7-5-7-10V6l7-4z" stroke-width="1.5"/></svg>
         Dialyzer Valve Controller
         <span class="chip">Web Serial</span>
@@ -111,6 +111,7 @@
     </div>
 
     <div class="grid">
+      <!-- Process buttons -->
       <div class="card" style="grid-column:span 6;">
         <h3>Quick Actions</h3>
         <div class="btns">
@@ -124,12 +125,10 @@
           <button data-cmd="status">Status (text)</button>
           <button data-cmd="closeall">Close All (text)</button>
         </div>
-        <div class="foot">
-          <span class="muted">Tip: close Arduino Serial Monitor before connecting.</span>
-          <span class="muted">Shortcut: <span class="kbd">/</span> to focus command</span>
-        </div>
+        <div class="foot"><span class="muted">Tip: close Arduino Serial Monitor before connecting.</span><span class="muted">Shortcut: <span class="kbd">/</span> to focus command</span></div>
       </div>
 
+      <!-- Valve control -->
       <div class="card" style="grid-column:span 6;">
         <h3>Valve Controls</h3>
         <div class="row" style="margin-bottom:10px">
@@ -142,18 +141,17 @@
         <div class="btns" id="valveGrid"></div>
       </div>
 
+      <!-- Command -->
       <div class="card" style="grid-column:span 6;">
         <h3>Command Palette</h3>
         <div class="row">
           <input id="cmd" class="input-grow" placeholder='Type commands: open 6, close 6, AFFUSION, RINSE, VOLUME, status' />
           <button id="btnSend" class="btn-primary">Send ⏎</button>
         </div>
-        <div class="foot">
-          <span class="muted">Ends with: <span id="endingEcho" class="kbd">\n</span></span>
-          <a class="link" href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API" target="_blank" rel="noreferrer">About Web Serial ↗</a>
-        </div>
+        <div class="foot"><span class="muted">Ends with: <span id="endingEcho" class="kbd">\n</span></span><a class="link" href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Serial_API" target="_blank" rel="noreferrer">About Web Serial ↗</a></div>
       </div>
 
+      <!-- Log -->
       <div class="card" style="grid-column:span 6;">
         <h3>Log</h3>
         <div class="toolbar">
@@ -167,27 +165,16 @@
   </div>
 
 <script>
-let port, reader, writer, isConnected=false, keepReading=false;
-const $ = s => document.querySelector(s);
+let port, reader, writer, isConnected = false, keepReading = false;
+const $ = sel => document.querySelector(sel);
 const logBox = $('#log');
-
-function log(msg, dir="→"){
-  const t = new Date().toLocaleTimeString();
-  logBox.textContent += `[${t}] ${dir} ${msg}\n`;
-  logBox.scrollTop = logBox.scrollHeight;
-}
-function toast(txt, type=""){
-  const box = $('#toasts');
-  const el = document.createElement('div');
-  el.className = `toast ${type}`;
-  el.textContent = txt;
-  box.appendChild(el);
-  setTimeout(()=>{ el.style.opacity=.0; setTimeout(()=>el.remove(),250) }, 2500);
-}
+function log(msg, dir="→"){ const t = new Date().toLocaleTimeString(); logBox.textContent += `[${t}] ${dir} ${msg}\n`; logBox.scrollTop = logBox.scrollHeight; }
+function toast(txt, type=""){ const box = $('#toasts'); const el = document.createElement('div'); el.className = `toast ${type}`; el.textContent = txt; box.appendChild(el); setTimeout(()=>{ el.style.opacity=.0; setTimeout(()=>el.remove(),250)}, 2500); }
 function setStatus(connected, txt){
   isConnected = connected;
   $('#statusTxt').textContent = txt || (connected ? "Connected" : "Disconnected");
-  $('#dot').classList.toggle('ok', connected);
+  const dot = $('#dot');
+  dot.classList.toggle('ok', connected);
   $('#btnDisconnect').disabled = !connected;
   $('#btnConnect').disabled = connected;
 }
@@ -195,14 +182,14 @@ function setStatus(connected, txt){
 async function connect(){
   try{
     if(!('serial' in navigator)){ toast("Web Serial not supported. Use Chrome/Edge desktop.", "err"); return; }
-    const baud = parseInt($('#baud').value,10);
-    port = await navigator.serial.requestPort();
+    const baud = parseInt($('#baud').value, 10);
+    port = await navigator.serial.requestPort(); // user picks Arduino USB or HC‑05 COM
     await port.open({ baudRate: baud });
     writer = port.writable.getWriter();
     keepReading = true;
     readLoop();
     setStatus(true, `Connected @ ${baud}`);
-    toast("Connected ✓","ok");
+    toast("Connected ✓", "ok");
     log(`Connected @ ${baud}`, "✓");
   }catch(e){
     toast("Connect error: " + e.message, "err");
@@ -212,12 +199,12 @@ async function connect(){
 async function disconnect(){
   try{
     keepReading = false;
-    if(reader){ await reader.cancel(); reader.releaseLock(); reader=null; }
-    if(writer){ writer.releaseLock(); writer=null; }
-    if(port){ await port.close(); port=null; }
+    if(reader){ await reader.cancel(); reader.releaseLock(); reader = null; }
+    if(writer){ writer.releaseLock(); writer = null; }
+    if(port){ await port.close(); port = null; }
     setStatus(false, "Disconnected");
-    toast("Disconnected","warn");
-    log("Disconnected","⏏");
+    toast("Disconnected", "warn");
+    log("Disconnected", "⏏");
   }catch(e){ toast("Disconnect error: " + e.message, "err"); }
 }
 async function readLoop(){
@@ -229,14 +216,11 @@ async function readLoop(){
       if(done) break;
       if(value) log(dec.decode(value), "←");
     }
-  }catch(e){
-    log("Read error: " + e.message, "!");
-  }finally{
-    if(reader){ reader.releaseLock(); reader=null; }
-  }
+  }catch(e){ log("Read error: " + e.message, "!"); }
+  finally{ if(reader){ reader.releaseLock(); reader = null; } }
 }
 async function sendLine(text){
-  if(!writer){ toast("Not connected","warn"); return; }
+  if(!writer){ toast("Not connected", "warn"); return; }
   const ending = $('#lineEnding').value;
   const payload = (text ?? "").toString() + (ending || "");
   try{
@@ -247,16 +231,12 @@ async function sendLine(text){
     log("Write error: " + e.message, "!");
   }
 }
-
-/* UI bindings */
 $('#btnConnect').addEventListener('click', connect);
 $('#btnDisconnect').addEventListener('click', disconnect);
 $('#btnSend').addEventListener('click', ()=> sendLine($('#cmd').value));
-$('#cmd').addEventListener('keydown', e=>{
-  if(e.key==='Enter'){ e.preventDefault(); $('#btnSend').click(); }
-});
+$('#cmd').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); $('#btnSend').click(); } });
 $('#lineEnding').addEventListener('change', e=> $('#endingEcho').textContent = e.target.value || 'none');
-$('#baud').addEventListener('change', ()=> toast(`Baud set to ${$('#baud').value}`, ''));
+$('#baud').addEventListener('change', ()=> toast(`Baud set to ${$('#baud').value}`,''));
 $('#btnCopy').addEventListener('click', async ()=>{
   await navigator.clipboard.writeText(logBox.textContent || "");
   toast("Log copied ✓","ok");
@@ -280,33 +260,26 @@ $('#btnAP').addEventListener('click', ()=>{
   sendLine((open ? "open " : "close ") + "99");
 });
 
-/* Valve grid */
+// Build a quick valve button grid (1..21 + AP 99)
 (function buildValveGrid(){
   const g = $('#valveGrid');
   for(let i=1;i<=21;i++){
-    const b = document.createElement('button');
-    b.textContent = `Open ${i}`;
-    b.addEventListener('click', ()=> sendLine('open '+i));
+    const b = document.createElement('button'); b.textContent = `Open ${i}`; b.addEventListener('click', ()=> sendLine('open '+i));
     g.appendChild(b);
   }
-  const ap = document.createElement('button');
-  ap.textContent = 'Open AP (99)';
-  ap.className = 'btn-ghost';
-  ap.addEventListener('click', ()=> sendLine('open 99'));
+  const ap = document.createElement('button'); ap.textContent = 'Open AP (99)'; ap.className='btn-ghost'; ap.addEventListener('click',()=>sendLine('open 99'));
   g.appendChild(ap);
 })();
 
-/* Shortcuts */
+// UX niceties
 document.addEventListener('keydown', e=>{
-  if(e.key==='/' && e.target.tagName!=='INPUT' && e.target.tagName!=='TEXTAREA'){
-    e.preventDefault(); $('#cmd').focus();
-  }
-  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){
-    e.preventDefault(); isConnected ? $('#btnDisconnect').click() : $('#btnConnect').click();
-  }
+  // '/' to focus command
+  if(e.key==='/' && e.target.tagName!=='INPUT' && e.target.tagName!=='TEXTAREA'){ e.preventDefault(); $('#cmd').focus(); }
+  // Ctrl/Cmd+K to connect/disconnect
+  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); isConnected?$('#btnDisconnect').click():$('#btnConnect').click(); }
 });
 
-/* Browser support hint */
+// Browser support hint
 if(!('serial' in navigator)){
   setStatus(false, "Unsupported browser");
   toast("Web Serial not supported. Use Chrome/Edge desktop.", "err");
