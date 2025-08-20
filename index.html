@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🔧 Valve Control - Serial Commands</title>
+    <title>🔧 Valve Control System - Bluetooth</title>
     <style>
         * {
             margin: 0;
@@ -13,204 +13,216 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: white;
-            padding: 15px;
+            color: #333;
+            padding: 10px;
         }
 
         .container {
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
+            background: rgba(255,255,255,0.95);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            margin-bottom: 10px;
-        }
-
-        .section {
-            background: rgba(255,255,255,0.1);
-            border-radius: 15px;
-            padding: 20px;
-            margin-bottom: 20px;
-            backdrop-filter: blur(10px);
-        }
-
-        .section h3 {
-            color: #f39c12;
-            margin-bottom: 15px;
-            border-bottom: 2px solid #f39c12;
-            padding-bottom: 5px;
-        }
-
-        .command-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 10px;
             margin-bottom: 20px;
         }
 
-        .command-item {
-            background: rgba(255,255,255,0.2);
-            border-radius: 10px;
+        .connection-status {
             padding: 15px;
-            text-align: center;
-            border: 2px solid transparent;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .command-item:hover {
-            border-color: #f39c12;
-            background: rgba(255,255,255,0.3);
-        }
-
-        .command-title {
-            font-weight: bold;
-            color: #f39c12;
-            margin-bottom: 8px;
-        }
-
-        .command-text {
-            background: #2c3e50;
-            color: #00ff00;
-            padding: 8px;
-            border-radius: 5px;
-            font-family: 'Courier New', monospace;
-            font-size: 14px;
-            margin-bottom: 8px;
-            word-break: break-all;
-        }
-
-        .command-desc {
-            font-size: 12px;
-            color: #bdc3c7;
-        }
-
-        .valve-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-            gap: 10px;
-        }
-
-        .valve-item {
-            background: rgba(255,255,255,0.15);
             border-radius: 8px;
-            padding: 10px;
+            margin-bottom: 20px;
             text-align: center;
-        }
-
-        .valve-number {
             font-weight: bold;
-            color: #e74c3c;
-            margin-bottom: 5px;
         }
 
-        .valve-commands {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
+        .status-disconnected { background: #e74c3c; color: white; }
+        .status-connected { background: #27ae60; color: white; }
+        .status-connecting { background: #f39c12; color: white; }
 
-        .valve-cmd {
-            background: #27ae60;
-            color: white;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-family: 'Courier New', monospace;
-            font-size: 11px;
-        }
-
-        .valve-cmd.close {
-            background: #e74c3c;
-        }
-
-        .instructions {
-            background: #f39c12;
-            color: #2c3e50;
+        .troubleshooting {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
             padding: 15px;
-            border-radius: 10px;
             margin-bottom: 20px;
         }
 
-        .instructions h4 {
+        .troubleshooting h4 {
+            color: #856404;
             margin-bottom: 10px;
         }
 
-        .instructions ol {
+        .troubleshooting ul {
+            color: #856404;
             margin-left: 20px;
         }
 
-        .instructions li {
-            margin-bottom: 5px;
+        .controls-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
         }
 
-        .app-links {
+        .control-panel {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            border: 2px solid #e9ecef;
+        }
+
+        .control-panel h3 {
+            margin-bottom: 15px;
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 5px;
+        }
+
+        .button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: bold;
+            margin: 5px;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn-connect { background: #3498db; color: white; }
+        .btn-disconnect { background: #e74c3c; color: white; }
+        .btn-process { background: #27ae60; color: white; }
+        .btn-emergency { background: #c0392b; color: white; }
+        .btn-test { background: #f39c12; color: white; }
+
+        .valve-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .valve-button {
+            aspect-ratio: 1;
+            border: 2px solid #bdc3c7;
+            border-radius: 8px;
+            background: #ecf0f1;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .valve-button:hover { transform: scale(1.05); }
+
+        .valve-button.open {
+            background: #27ae60;
+            color: white;
+            border-color: #27ae60;
+        }
+
+        .valve-button.closed {
+            background: #95a5a6;
+            color: white;
+            border-color: #95a5a6;
+        }
+
+        .valve-light {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #7f8c8d;
+            margin-bottom: 3px;
+        }
+
+        .valve-light.on {
+            background: #f1c40f;
+            box-shadow: 0 0 8px #f1c40f;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .status-display {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin-top: 15px;
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .log-panel {
+            background: #1a1a1a;
+            color: #00ff00;
+            padding: 15px;
+            border-radius: 8px;
+            height: 200px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            margin-top: 20px;
+        }
+
+        .log-entry {
+            margin-bottom: 3px;
+        }
+
+        .log-timestamp { color: #888; }
+        .log-error { color: #ff6b6b; }
+        .log-success { color: #51cf66; }
+        .log-info { color: #74c0fc; }
+        .log-warning { color: #ffd43b; }
+
+        .connection-methods {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 15px;
             margin-bottom: 20px;
         }
 
-        .app-card {
-            background: rgba(255,255,255,0.2);
+        .method-card {
+            background: white;
+            border: 2px solid #e9ecef;
             border-radius: 10px;
             padding: 15px;
             text-align: center;
         }
 
-        .app-name {
-            font-weight: bold;
-            color: #3498db;
-            margin-bottom: 5px;
-        }
-
-        .copy-btn {
-            background: #27ae60;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 12px;
-            margin-top: 5px;
-        }
-
-        .copy-btn:hover {
-            background: #2ecc71;
-        }
-
-        .copy-btn:active {
-            background: #229954;
-        }
-
-        .status-section {
-            background: #2c3e50;
-            color: #ecf0f1;
-            padding: 15px;
-            border-radius: 10px;
-            font-family: 'Courier New', monospace;
-        }
-
-        .status-section h4 {
-            color: #3498db;
-            margin-bottom: 10px;
-        }
-
-        @media (max-width: 600px) {
-            .command-grid {
-                grid-template-columns: 1fr;
-            }
-            
-            .valve-grid {
-                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-            }
+        .method-card.active {
+            border-color: #3498db;
+            background: #ebf3fd;
         }
     </style>
 </head>
@@ -218,404 +230,459 @@
     <div class="container">
         <div class="header">
             <h1>🔧 Valve Control System</h1>
-            <p>Bluetooth Serial Commands Interface</p>
+            <p>Bluetooth Wireless Control Interface</p>
         </div>
 
-        <!-- Instructions -->
-        <div class="instructions">
-            <h4>📱 How to Connect via Bluetooth Serial App:</h4>
-            <ol>
-                <li><strong>Pair HC-05:</strong> Settings → Bluetooth → "HC-05" (PIN: 1234)</li>
-                <li><strong>Download App:</strong> Install "Serial Bluetooth Terminal" from Play Store</li>
-                <li><strong>Connect:</strong> Open app → Connect to "HC-05"</li>
-                <li><strong>Send Commands:</strong> Type/copy commands below and press Enter</li>
-                <li><strong>Monitor:</strong> Watch responses from Arduino system</li>
-            </ol>
+        <!-- Connection Status -->
+        <div id="connectionStatus" class="connection-status status-disconnected">
+            ❌ Disconnected - Choose a connection method below
         </div>
 
-        <!-- Recommended Apps -->
-        <div class="section">
-            <h3>📱 Recommended Bluetooth Terminal Apps</h3>
-            <div class="app-links">
-                <div class="app-card">
-                    <div class="app-name">Serial Bluetooth Terminal</div>
-                    <div>by Kai Morich</div>
-                    <div style="font-size: 12px; margin-top: 5px;">Best compatibility with HC-05</div>
-                </div>
-                <div class="app-card">
-                    <div class="app-name">Bluetooth Terminal HC-05</div>
-                    <div>by ViliusSoft</div>
-                    <div style="font-size: 12px; margin-top: 5px;">Designed specifically for HC-05</div>
-                </div>
-                <div class="app-card">
-                    <div class="app-name">Arduino Bluetooth Controller</div>
-                    <div>by Giumig Apps</div>
-                    <div style="font-size: 12px; margin-top: 5px;">Arduino-focused interface</div>
-                </div>
+        <!-- Troubleshooting Info -->
+        <div class="troubleshooting" id="troubleshootingPanel">
+            <h4>🔧 Connection Troubleshooting:</h4>
+            <ul>
+                <li><strong>Web Bluetooth:</strong> Use Chrome/Edge browser only</li>
+                <li><strong>HC-05 Module:</strong> Check if LED is blinking (discoverable mode)</li>
+                <li><strong>Power:</strong> Verify HC-05 has 5V power and proper wiring</li>
+                <li><strong>Phone Test:</strong> Try pairing HC-05 with your phone first</li>
+                <li><strong>Arduino:</strong> Check Serial Monitor shows "ARDUINO_READY"</li>
+            </ul>
+        </div>
+
+        <!-- Connection Methods -->
+        <div class="connection-methods">
+            <div class="method-card" id="webBluetoothCard">
+                <h4>📱 Web Bluetooth (Chrome/Edge)</h4>
+                <p>Direct browser connection</p>
+                <button id="webBluetoothBtn" class="button btn-connect" onclick="connectWebBluetooth()">
+                    Connect via Web Bluetooth
+                </button>
+                <div id="webBluetoothStatus">Ready</div>
+            </div>
+
+            <div class="method-card" id="serialCard">
+                <h4>🔌 Serial Simulation</h4>
+                <p>Test interface without Bluetooth</p>
+                <button class="button btn-test" onclick="enableSimulationMode()">
+                    Enable Test Mode
+                </button>
+                <div id="serialStatus">Available</div>
+            </div>
+
+            <div class="method-card" id="websocketCard">
+                <h4>🌐 WiFi Bridge (Future)</h4>
+                <p>ESP32 WiFi connection</p>
+                <button class="button btn-connect" disabled>
+                    Coming Soon
+                </button>
+                <div>ESP32 + HC-05 bridge</div>
             </div>
         </div>
 
-        <!-- System Commands -->
-        <div class="section">
-            <h3>🔄 System Commands</h3>
-            <div class="command-grid">
-                <div class="command-item" onclick="copyCommand('GET_STATUS')">
-                    <div class="command-title">Get Status</div>
-                    <div class="command-text">GET_STATUS</div>
-                    <div class="command-desc">Returns weight, valve count, system status</div>
-                    <button class="copy-btn">Copy Command</button>
+        <!-- Main Controls Grid -->
+        <div class="controls-grid">
+            <!-- Process Control Panel -->
+            <div class="control-panel">
+                <h3>🔄 Process Control</h3>
+                <button class="button btn-process" onclick="startProcess(1)">💧 Affusion Process</button>
+                <button class="button btn-process" onclick="startProcess(2)">🧽 Cleaning Process</button>
+                <button class="button btn-process" onclick="startProcess(3)">🔄 Rinse Process</button>
+                <button class="button btn-process" onclick="startProcess(4)">📏 Volume Test</button>
+                <button class="button btn-emergency" onclick="emergencyStop()">🚨 Emergency Stop</button>
+            </div>
+
+            <!-- System Status Panel -->
+            <div class="control-panel">
+                <h3>📊 System Status</h3>
+                <div class="status-display">
+                    <div class="status-row">
+                        <span>Connection:</span>
+                        <span id="connectionType">None</span>
+                    </div>
+                    <div class="status-row">
+                        <span>Weight:</span>
+                        <span id="currentWeight">0.00g</span>
+                    </div>
+                    <div class="status-row">
+                        <span>Active Valves:</span>
+                        <span id="activeValves">0</span>
+                    </div>
+                    <div class="status-row">
+                        <span>System:</span>
+                        <span id="systemStatus">Ready</span>
+                    </div>
                 </div>
-                
-                <div class="command-item" onclick="copyCommand('CLOSE_ALL')">
-                    <div class="command-title">Emergency Stop</div>
-                    <div class="command-text">CLOSE_ALL</div>
-                    <div class="command-desc">Closes all valves immediately</div>
-                    <button class="copy-btn">Copy Command</button>
-                </div>
-                
-                <div class="command-item" onclick="copyCommand('TARE_SCALE')">
-                    <div class="command-title">Tare Scale</div>
-                    <div class="command-text">TARE_SCALE</div>
-                    <div class="command-desc">Sets load cell to zero</div>
-                    <button class="copy-btn">Copy Command</button>
-                </div>
-                
-                <div class="command-item" onclick="copyCommand('EMERGENCY_STOP')">
-                    <div class="command-title">Emergency Stop</div>
-                    <div class="command-text">EMERGENCY_STOP</div>
-                    <div class="command-desc">Complete system shutdown</div>
-                    <button class="copy-btn">Copy Command</button>
-                </div>
+                <button class="button btn-process" onclick="refreshStatus()">🔄 Refresh Status</button>
+                <button class="button btn-process" onclick="sendCommand('TARE_SCALE')">⚖️ Tare Scale</button>
             </div>
         </div>
 
-        <!-- Process Commands -->
-        <div class="section">
-            <h3>🔄 Process Commands</h3>
-            <div class="command-grid">
-                <div class="command-item" onclick="copyCommand('PROCESS_1')">
-                    <div class="command-title">💧 Affusion Process</div>
-                    <div class="command-text">PROCESS_1</div>
-                    <div class="command-desc">12-step affusion sequence</div>
-                    <button class="copy-btn">Copy Command</button>
-                </div>
-                
-                <div class="command-item" onclick="copyCommand('PROCESS_2')">
-                    <div class="command-title">🧽 Cleaning Process</div>
-                    <div class="command-text">PROCESS_2</div>
-                    <div class="command-desc">8-step cleaning sequence</div>
-                    <button class="copy-btn">Copy Command</button>
-                </div>
-                
-                <div class="command-item" onclick="copyCommand('PROCESS_3')">
-                    <div class="command-title">🔄 Rinse Process</div>
-                    <div class="command-text">PROCESS_3</div>
-                    <div class="command-desc">5-step rinse sequence</div>
-                    <button class="copy-btn">Copy Command</button>
-                </div>
-                
-                <div class="command-item" onclick="copyCommand('PROCESS_4')">
-                    <div class="command-title">📏 Volume Test</div>
-                    <div class="command-text">PROCESS_4</div>
-                    <div class="command-desc">10-step TBV testing</div>
-                    <button class="copy-btn">Copy Command</button>
-                </div>
-            </div>
-        </div>
-
-        <!-- Manual Valve Control -->
-        <div class="section">
+        <!-- Valve Control Grid -->
+        <div class="control-panel">
             <h3>⚙️ Manual Valve Control</h3>
-            <div class="valve-grid">
-                <!-- Regular Valves 1-21 -->
-                <div class="valve-item">
-                    <div class="valve-number">V01</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_1')">OPEN_1</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_1')">CLOSE_1</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V02</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_2')">OPEN_2</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_2')">CLOSE_2</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V03</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_3')">OPEN_3</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_3')">CLOSE_3</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V04</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_4')">OPEN_4</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_4')">CLOSE_4</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V05</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_5')">OPEN_5</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_5')">CLOSE_5</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V06</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_6')">OPEN_6</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_6')">CLOSE_6</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V07</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_7')">OPEN_7</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_7')">CLOSE_7</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V08</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_8')">OPEN_8</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_8')">CLOSE_8</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V09</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_9')">OPEN_9</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_9')">CLOSE_9</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V10</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_10')">OPEN_10</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_10')">CLOSE_10</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V11</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_11')">OPEN_11</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_11')">CLOSE_11</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V12</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_12')">OPEN_12</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_12')">CLOSE_12</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V13</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_13')">OPEN_13</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_13')">CLOSE_13</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V14</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_14')">OPEN_14</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_14')">CLOSE_14</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V15</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_15')">OPEN_15</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_15')">CLOSE_15</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V16</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_16')">OPEN_16</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_16')">CLOSE_16</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V17</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_17')">OPEN_17</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_17')">CLOSE_17</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V18</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_18')">OPEN_18</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_18')">CLOSE_18</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V19</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_19')">OPEN_19</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_19')">CLOSE_19</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V20</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_20')">OPEN_20</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_20')">CLOSE_20</div>
-                    </div>
-                </div>
-                
-                <div class="valve-item">
-                    <div class="valve-number">V21</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_21')">OPEN_21</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_21')">CLOSE_21</div>
-                    </div>
-                </div>
-                
-                <!-- AP Valve (Special) -->
-                <div class="valve-item" style="border: 2px solid #e74c3c;">
-                    <div class="valve-number" style="color: #e74c3c;">AP</div>
-                    <div class="valve-commands">
-                        <div class="valve-cmd" onclick="copyCommand('OPEN_99')">OPEN_99</div>
-                        <div class="valve-cmd close" onclick="copyCommand('CLOSE_99')">CLOSE_99</div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Expected Responses -->
-        <div class="section">
-            <h3>📡 Expected Arduino Responses</h3>
-            <div class="status-section">
-                <h4>System Status Response:</h4>
-                <div>STATUS:{"weight":125.40,"active_valves":3,"system_running":false,"process":0,"uptime":123456,"valve_states":42}</div>
-                
-                <h4 style="margin-top: 15px;">Valve Operations:</h4>
-                <div>VALVE_OPEN:12 (when valve opens)</div>
-                <div>VALVE_CLOSE:5 (when valve closes)</div>
-                <div>ALL_VALVES_CLOSED (when all close)</div>
-                
-                <h4 style="margin-top: 15px;">Process Updates:</h4>
-                <div>PROCESS_START:AFFUSION,12</div>
-                <div>STEP:1,12,Emptying</div>
-                <div>STEP:2,12,Air vent</div>
-                <div>PROCESS_COMPLETE:AFFUSION</div>
-                
-                <h4 style="margin-top: 15px;">Weight Data:</h4>
-                <div>WEIGHT:125.40</div>
-                <div>WEIGHT_REACHED:100.00</div>
-                <div>SCALE_TARED</div>
-            </div>
-        </div>
-
-        <!-- Troubleshooting -->
-        <div class="section">
-            <h3>🔧 Troubleshooting</h3>
-            <div style="background: rgba(231, 76, 60, 0.2); padding: 15px; border-radius: 8px; margin-bottom: 15px;">
-                <h4 style="color: #e74c3c; margin-bottom: 10px;">If Commands Don't Work:</h4>
-                <ul style="margin-left: 20px;">
-                    <li>Check HC-05 LED is blinking (discoverable) or solid (connected)</li>
-                    <li>Verify Arduino Serial Monitor shows "ARDUINO_READY"</li>
-                    <li>Ensure HC-05 is paired with your device (PIN: 1234)</li>
-                    <li>Try sending "GET_STATUS" first to test connection</li>
-                    <li>Check wiring: HC-05 VCC→5V, GND→GND, TXD→Pin10, RXD→Pin11</li>
-                </ul>
-            </div>
+            <button class="button btn-emergency" onclick="sendCommand('CLOSE_ALL')">🔒 Close All Valves</button>
             
-            <div style="background: rgba(243, 156, 18, 0.2); padding: 15px; border-radius: 8px;">
-                <h4 style="color: #f39c12; margin-bottom: 10px;">Connection Tips:</h4>
-                <ul style="margin-left: 20px;">
-                    <li>Use "Serial Bluetooth Terminal" app for best compatibility</li>
-                    <li>Set line ending to "Both NL & CR" in app settings</li>
-                    <li>Commands are case-insensitive (OPEN_1 = open_1)</li>
-                    <li>Wait for response before sending next command</li>
-                    <li>Use EMERGENCY_STOP if system gets stuck</li>
-                </ul>
+            <div class="valve-grid" id="valveGrid">
+                <!-- Valves will be generated by JavaScript -->
             </div>
+        </div>
+
+        <!-- Communication Log -->
+        <div class="log-panel" id="logPanel">
+            <div class="log-entry"><span class="log-timestamp">[00:00:00]</span> <span class="log-info">System initialized. Choose connection method above.</span></div>
         </div>
     </div>
 
     <script>
-        // Copy command to clipboard
-        function copyCommand(command) {
-            navigator.clipboard.writeText(command).then(function() {
-                // Show feedback
-                showCopyFeedback(command);
-            }).catch(function(err) {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = command;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                showCopyFeedback(command);
-            });
+        // Global variables
+        let bluetoothDevice = null;
+        let bluetoothCharacteristic = null;
+        let isConnected = false;
+        let connectionType = 'none';
+        let valveStates = {};
+        let simulationMode = false;
+
+        // Check Web Bluetooth support
+        function checkWebBluetoothSupport() {
+            if (!navigator.bluetooth) {
+                document.getElementById('webBluetoothBtn').disabled = true;
+                document.getElementById('webBluetoothBtn').textContent = 'Not Supported';
+                document.getElementById('webBluetoothStatus').textContent = 'Unsupported Browser';
+                addLog('Web Bluetooth not supported in this browser', 'error');
+                return false;
+            }
+            return true;
         }
 
-        // Show copy feedback
-        function showCopyFeedback(command) {
-            // Create temporary notification
-            const notification = document.createElement('div');
-            notification.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                background: #27ae60;
-                color: white;
-                padding: 10px 20px;
-                border-radius: 5px;
-                z-index: 9999;
-                font-weight: bold;
-            `;
-            notification.textContent = `Copied: ${command}`;
+        // Initialize valve grid
+        function initializeValveGrid() {
+            const valveGrid = document.getElementById('valveGrid');
             
-            document.body.appendChild(notification);
+            // Create valves 1-21
+            for (let i = 1; i <= 21; i++) {
+                createValveButton(i, valveGrid);
+            }
             
-            // Remove after 2 seconds
-            setTimeout(() => {
-                document.body.removeChild(notification);
-            }, 2000);
+            // Create AP valve
+            createValveButton(99, valveGrid, true);
         }
 
-        // Add click handlers to all command items
-        document.addEventListener('DOMContentLoaded', function() {
-            const commandItems = document.querySelectorAll('.command-item');
-            commandItems.forEach(item => {
-                item.addEventListener('click', function(e) {
-                    if (e.target.classList.contains('copy-btn')) {
-                        e.stopPropagation();
-                        return;
+        function createValveButton(valveNum, container, isAP = false) {
+            const button = document.createElement('div');
+            button.className = 'valve-button closed';
+            button.id = `valve-${valveNum}`;
+            button.onclick = () => toggleValve(valveNum);
+            
+            const light = document.createElement('div');
+            light.className = 'valve-light';
+            
+            const label = document.createElement('div');
+            label.textContent = isAP ? 'AP' : `V${valveNum.toString().padStart(2, '0')}`;
+            
+            const status = document.createElement('div');
+            status.textContent = 'OFF';
+            status.style.fontSize = '10px';
+            
+            button.appendChild(light);
+            button.appendChild(label);
+            button.appendChild(status);
+            container.appendChild(button);
+            
+            valveStates[valveNum] = false;
+        }
+
+        // Web Bluetooth connection with multiple service attempts
+        async function connectWebBluetooth() {
+            if (!checkWebBluetoothSupport()) return;
+            
+            try {
+                addLog('Searching for HC-05 Bluetooth device...', 'info');
+                document.getElementById('webBluetoothStatus').textContent = 'Connecting...';
+                
+                // Try multiple filter options for HC-05
+                const requestOptions = [
+                    // Option 1: By name prefix
+                    {
+                        filters: [
+                            { namePrefix: 'HC-05' },
+                            { namePrefix: 'HC-06' },
+                            { namePrefix: 'ValveControl' }
+                        ],
+                        optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb']
+                    },
+                    // Option 2: By service UUID
+                    {
+                        filters: [
+                            { services: ['0000ffe0-0000-1000-8000-00805f9b34fb'] }
+                        ]
+                    },
+                    // Option 3: Accept all devices (last resort)
+                    {
+                        acceptAllDevices: true,
+                        optionalServices: ['0000ffe0-0000-1000-8000-00805f9b34fb']
                     }
-                    
-                    const commandText = item.querySelector('.command-text').textContent;
-                    copyCommand(commandText);
-                });
+                ];
+
+                let device = null;
+                
+                // Try each option
+                for (let i = 0; i < requestOptions.length; i++) {
+                    try {
+                        addLog(`Trying connection method ${i + 1}...`, 'info');
+                        device = await navigator.bluetooth.requestDevice(requestOptions[i]);
+                        break;
+                    } catch (error) {
+                        addLog(`Method ${i + 1} failed: ${error.message}`, 'warning');
+                        if (i === requestOptions.length - 1) throw error;
+                    }
+                }
+
+                if (!device) throw new Error('No device selected');
+
+                addLog(`Found device: ${device.name || 'Unknown'}`, 'success');
+                addLog('Connecting to GATT server...', 'info');
+                
+                const server = await device.gatt.connect();
+                
+                addLog('Getting service...', 'info');
+                const service = await server.getPrimaryService('0000ffe0-0000-1000-8000-00805f9b34fb');
+                
+                addLog('Getting characteristic...', 'info');
+                bluetoothCharacteristic = await service.getCharacteristic('0000ffe1-0000-1000-8000-00805f9b34fb');
+                
+                // Set up notifications
+                await bluetoothCharacteristic.startNotifications();
+                bluetoothCharacteristic.addEventListener('characteristicvaluechanged', handleBluetoothData);
+                
+                // Connection successful
+                bluetoothDevice = device;
+                isConnected = true;
+                connectionType = 'bluetooth';
+                
+                updateConnectionStatus(true, device.name || 'HC-05');
+                addLog('Bluetooth connected successfully!', 'success');
+                
+                // Request initial status
+                setTimeout(() => sendCommand('GET_STATUS'), 1000);
+                
+            } catch (error) {
+                addLog(`Bluetooth connection failed: ${error.message}`, 'error');
+                document.getElementById('webBluetoothStatus').textContent = 'Failed';
+                updateConnectionStatus(false);
+                
+                addLog('Try these solutions:', 'warning');
+                addLog('1. Check HC-05 LED is blinking', 'warning');
+                addLog('2. Verify Arduino code is running', 'warning');
+                addLog('3. Try pairing with phone first', 'warning');
+                addLog('4. Use Test Mode for debugging', 'warning');
+            }
+        }
+
+        // Simulation mode for testing without Bluetooth
+        function enableSimulationMode() {
+            simulationMode = true;
+            isConnected = true;
+            connectionType = 'simulation';
+            
+            document.getElementById('serialCard').classList.add('active');
+            updateConnectionStatus(true, 'Simulation Mode');
+            addLog('Simulation mode enabled - UI will work without Arduino', 'success');
+            
+            // Simulate some data
+            setTimeout(() => {
+                updateWeight(125.40);
+                updateValveState(1, true);
+                updateValveState(5, true);
+                updateValveState(12, true);
+            }, 1000);
+        }
+
+        // Send command function
+        async function sendCommand(command) {
+            if (!isConnected) {
+                addLog('Not connected to device', 'error');
+                return;
+            }
+            
+            if (simulationMode) {
+                addLog(`[SIM] Sent: ${command}`, 'info');
+                simulateResponse(command);
+                return;
+            }
+            
+            if (!bluetoothCharacteristic) {
+                addLog('Bluetooth characteristic not available', 'error');
+                return;
+            }
+            
+            try {
+                const encoder = new TextEncoder();
+                await bluetoothCharacteristic.writeValue(encoder.encode(command + '\n'));
+                addLog(`Sent: ${command}`, 'info');
+            } catch (error) {
+                addLog(`Send failed: ${error.message}`, 'error');
+            }
+        }
+
+        // Simulate responses for test mode
+        function simulateResponse(command) {
+            setTimeout(() => {
+                if (command === 'GET_STATUS') {
+                    const status = {
+                        weight: 125.40 + Math.random() * 10 - 5,
+                        active_valves: Object.values(valveStates).filter(v => v).length,
+                        system_running: false,
+                        process: 0,
+                        uptime: Date.now(),
+                        valve_states: 42
+                    };
+                    handleSimulatedData('STATUS:' + JSON.stringify(status));
+                } else if (command.startsWith('OPEN_')) {
+                    const valve = parseInt(command.substring(5));
+                    handleSimulatedData('VALVE_OPEN:' + valve);
+                } else if (command.startsWith('CLOSE_')) {
+                    const valve = parseInt(command.substring(6));
+                    handleSimulatedData('VALVE_CLOSE:' + valve);
+                } else if (command === 'CLOSE_ALL') {
+                    handleSimulatedData('ALL_VALVES_CLOSED');
+                }
+            }, 200);
+        }
+
+        // Handle Bluetooth data
+        function handleBluetoothData(event) {
+            const decoder = new TextDecoder();
+            const data = decoder.decode(event.target.value).trim();
+            handleReceivedData(data);
+        }
+
+        // Handle simulated data
+        function handleSimulatedData(data) {
+            addLog(`[SIM] Received: ${data}`, 'success');
+            handleReceivedData(data);
+        }
+
+        // Process received data (common for both real and simulated)
+        function handleReceivedData(data) {
+            if (data.startsWith('STATUS:')) {
+                parseStatusData(data.substring(7));
+            } else if (data.startsWith('VALVE_OPEN:')) {
+                const valve = parseInt(data.substring(11));
+                updateValveState(valve, true);
+            } else if (data.startsWith('VALVE_CLOSE:')) {
+                const valve = parseInt(data.substring(12));
+                updateValveState(valve, false);
+            } else if (data.startsWith('WEIGHT:')) {
+                const weight = parseFloat(data.substring(7));
+                updateWeight(weight);
+            } else if (data === 'ALL_VALVES_CLOSED') {
+                closeAllValvesUI();
+            }
+        }
+
+        // Parse status data
+        function parseStatusData(jsonStr) {
+            try {
+                const status = JSON.parse(jsonStr);
+                updateWeight(status.weight);
+                document.getElementById('activeValves').textContent = status.active_valves;
+                document.getElementById('systemStatus').textContent = status.system_running ? 'Running' : 'Ready';
+            } catch (error) {
+                addLog(`Error parsing status: ${error.message}`, 'error');
+            }
+        }
+
+        // UI Update functions
+        function updateConnectionStatus(connected, deviceName = 'Unknown') {
+            const statusElement = document.getElementById('connectionStatus');
+            const connectionTypeElement = document.getElementById('connectionType');
+            
+            if (connected) {
+                statusElement.className = 'connection-status status-connected';
+                statusElement.textContent = `✅ Connected via ${connectionType} - ${deviceName}`;
+                connectionTypeElement.textContent = connectionType;
+                document.getElementById('troubleshootingPanel').style.display = 'none';
+            } else {
+                statusElement.className = 'connection-status status-disconnected';
+                statusElement.textContent = '❌ Disconnected - Choose connection method above';
+                connectionTypeElement.textContent = 'None';
+                document.getElementById('troubleshootingPanel').style.display = 'block';
+            }
+        }
+
+        function updateValveState(valveNum, isOpen) {
+            valveStates[valveNum] = isOpen;
+            
+            const button = document.getElementById(`valve-${valveNum}`);
+            if (!button) return;
+            
+            const light = button.querySelector('.valve-light');
+            const status = button.querySelector('div:last-child');
+            
+            if (isOpen) {
+                button.className = 'valve-button open';
+                light.className = 'valve-light on';
+                status.textContent = 'ON';
+            } else {
+                button.className = 'valve-button closed';
+                light.className = 'valve-light';
+                status.textContent = 'OFF';
+            }
+        }
+
+        function updateWeight(weight) {
+            document.getElementById('currentWeight').textContent = `${weight.toFixed(2)}g`;
+        }
+
+        function closeAllValvesUI() {
+            Object.keys(valveStates).forEach(valve => {
+                updateValveState(parseInt(valve), false);
             });
+        }
+
+        // Control functions
+        function startProcess(processNum) {
+            sendCommand(`PROCESS_${processNum}`);
+        }
+
+        function emergencyStop() {
+            sendCommand('EMERGENCY_STOP');
+        }
+
+        function toggleValve(valveNum) {
+            const currentState = valveStates[valveNum];
+            const command = currentState ? `CLOSE_${valveNum}` : `OPEN_${valveNum}`;
+            sendCommand(command);
+        }
+
+        function refreshStatus() {
+            sendCommand('GET_STATUS');
+        }
+
+        // Logging function
+        function addLog(message, type = 'info') {
+            const logPanel = document.getElementById('logPanel');
+            const timestamp = new Date().toLocaleTimeString();
+            
+            const logEntry = document.createElement('div');
+            logEntry.className = 'log-entry';
+            logEntry.innerHTML = `<span class="log-timestamp">[${timestamp}]</span> <span class="log-${type}">${message}</span>`;
+            
+            logPanel.appendChild(logEntry);
+            logPanel.scrollTop = logPanel.scrollHeight;
+            
+            // Keep only last 100 entries
+            while (logPanel.children.length > 100) {
+                logPanel.removeChild(logPanel.firstChild);
+            }
+        }
+
+        // Initialize the interface
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeValveGrid();
+            checkWebBluetoothSupport();
+            addLog('Interface initialized. Choose a connection method above.', 'success');
         });
     </script>
 </body>
