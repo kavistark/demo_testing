@@ -1,444 +1,336 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-<meta name="theme-color" content="#0f1115">
-<title>Dialyzer Valve Controller</title>
-<style>
-  :root{
-    --bg: #0f1115; --card:#151922; --muted:#a5adcb; --text:#e6eaf2; --accent:#7aa2f7; --ok:#3ccf91; --warn:#ffcc66; --err:#ff6b6b; --line:#222636;
-    --btn:#1b2030; --btn-hover:#232a3c; --chip:#1a2130;
-    --shadow: 0 10px 30px rgba(0,0,0,.35);
-    --radius: 14px;
-  }
-  @media (prefers-color-scheme: light){
-    :root{ --bg:#f7f8fb; --card:#ffffff; --muted:#54607a; --text:#0b1020; --accent:#2f6bff; --ok:#0e9f6e; --warn:#b98900; --err:#c03c3c; --line:#e7e9f0; --btn:#eef2fb; --btn-hover:#e3e8f7; --chip:#eef2fb; }
-  }
-  *{ box-sizing:border-box }
-  html,body{ height:100% }
-  body{
-    margin:0; background:var(--bg); color:var(--text); font:14px/1.5 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-  }
-  .wrap{ max-width:1200px; margin:32px auto; padding:0 20px; }
-  @media (max-width:480px){ .wrap{ margin:16px auto; padding:0 12px; } }
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Dialyzer Valve Controller</title>
 
-  /* Header */
-  .bar{
-    display:flex; flex-wrap:wrap; gap:12px; align-items:center; background:var(--card);
-    padding:12px; border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
-    position:sticky; top:0; z-index:10; backdrop-filter:saturate(140%) blur(6px);
-  }
-  .title{ font-size:18px; font-weight:700; letter-spacing:.2px; display:flex; align-items:center; gap:10px; min-width:220px }
-  .title svg{ width:20px; height:20px; flex:0 0 20px }
-  .sp{ flex:1 }
-  .pill{
-    display:inline-flex; align-items:center; gap:8px; padding:8px 12px; border-radius:999px; background:var(--chip); border:1px solid var(--line); color:var(--muted);
-  }
-  .dot{ width:10px; height:10px; border-radius:50%; background:#ff6b6b; box-shadow:0 0 0 0 rgba(255,107,107,.6); animation:pulse 2s infinite; }
-  .dot.ok{ background:var(--ok); box-shadow:0 0 0 0 rgba(60,207,145,.5) }
-  @media (prefers-reduced-motion: reduce){ .dot{ animation:none } }
-  @keyframes pulse {
-    0% { box-shadow:0 0 0 0 rgba(255,107,107,.6) }
-    70%{ box-shadow:0 0 0 10px rgba(255,107,107,0) }
-    100%{ box-shadow:0 0 0 0 rgba(255,107,107,0) }
-  }
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons (optional) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
 
-  .row{ display:flex; flex-wrap:wrap; gap:10px; align-items:center }
-  .row.fit>*{ flex:1 1 160px; min-width:160px }
-
-  select,input,button{
-    background:var(--btn); color:var(--text); border:1px solid var(--line); border-radius:10px; padding:10px 12px; outline:none;
-    min-height:44px; /* touch target */
-  }
-  select, input{ width:100% }
-  button{ cursor:pointer; transition:all .15s ease; white-space:nowrap }
-  button:active{ transform:translateY(1px) }
-  button:hover{ background:var(--btn-hover) }
-  .btn-primary{ background:linear-gradient(180deg, var(--accent), #4f7ffb); border:none; color:#fff; font-weight:600 }
-  .btn-ghost{ background:transparent; border:1px dashed var(--line); color:var(--muted) }
-  .btn-danger{ background:linear-gradient(180deg, #ff7c7c, #e55757); border:none; color:#fff; font-weight:600 }
-
-  /* Grid cards */
-  .grid{ display:grid; grid-template-columns:repeat(12,1fr); gap:16px; margin-top:18px }
-  @media (max-width:1100px){ .grid{ grid-template-columns:repeat(6,1fr) } }
-  @media (max-width:820px){ .grid{ grid-template-columns:repeat(4,1fr) } }
-  @media (max-width:640px){ .grid{ grid-template-columns:repeat(1,1fr) } }
-
-  .card{
-    background:var(--card); border:1px solid var(--line); border-radius:var(--radius); padding:16px; box-shadow:var(--shadow);
-  }
-  .card h3{ margin:0 0 10px; font-size:16px; letter-spacing:.2px }
-  .muted{ color:var(--muted) }
-
-  /* Buttons grid */
-  .btns{ display:grid; grid-template-columns:repeat(auto-fill,minmax(160px,1fr)); gap:10px }
-  .chip{
-    display:inline-flex; align-items:center; gap:8px; padding:6px 8px; border-radius:999px; background:var(--chip); border:1px solid var(--line); color:var(--muted); font-size:12px;
-  }
-  .kbd{ font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background:var(--bg); border:1px solid var(--line); padding:2px 6px; border-radius:6px }
-
-  /* Log */
-  #log{
-    background: #0b0e14; color:#d2e1ff; border:1px solid var(--line); border-radius:12px; min-height:260px; max-height:360px; overflow:auto; padding:12px; font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size:12.5px;
-  }
-  .toolbar{ display:flex; gap:10px; align-items:center; justify-content:flex-end; margin-bottom:10px }
-
-  /* Toasts */
-  .toasts{ position:fixed; right:18px; bottom:18px; display:flex; flex-direction:column; gap:10px; z-index:99 }
-  .toast{ background:var(--card); border:1px solid var(--line); border-left:4px solid var(--accent); color:var(--text); padding:10px 12px; border-radius:10px; box-shadow:var(--shadow); min-width:240px; max-width:min(92vw,420px) }
-  .toast.ok{ border-left-color:var(--ok) } .toast.err{ border-left-color:var(--err) } .toast.warn{ border-left-color:var(--warn) }
-
-  /* Footer */
-  .foot{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; justify-content:space-between; color:var(--muted); margin-top:12px; font-size:12px }
-  .link{ color:var(--accent); text-decoration:none }
-  .input-grow{ flex:1; min-width:220px }
-</style>
+  <style>
+    .terminal {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+      background: #0b0e14;
+      color: #e6edf3;
+      border-radius: .75rem;
+      border: 1px solid rgba(255,255,255,.1);
+      padding: .75rem;
+      height: 360px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+    .chip { border:1px solid rgba(255,255,255,.15); border-radius: 999px; padding:.25rem .6rem; }
+    .card { border:1px solid rgba(255,255,255,.1); border-radius: 1rem; }
+    .btn-wide { min-width: 150px; }
+    .kbd { font-family: ui-monospace, monospace; background:#111; padding:.15rem .4rem; border-radius:.35rem; border:1px solid rgba(255,255,255,.12);}
+    .muted { color: #9aa4b2; }
+  </style>
 </head>
 <body>
-  <div class="wrap">
-    <!-- Top bar -->
-    <div class="bar">
-      <div class="title">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path d="M12 2l7 4v6c0 5-3.5 7.5-7 10-3.5-2.5-7-5-7-10V6l7-4z" stroke-width="1.5"/></svg>
-        <span>Dialyzer Valve Controller</span>
-        <span class="chip">Multi‑Transport</span>
-      </div>
+<nav class="navbar navbar-expand-lg border-bottom">
+  <div class="container">
+    <span class="navbar-brand fw-semibold"><i class="bi bi-gear-wide-connected me-2"></i>HC‑05 Valve Controller</span>
+    <div class="d-flex gap-2 align-items-center ms-auto">
+      <span id="statusBadge" class="badge text-bg-secondary">Disconnected</span>
+      <button id="btnConnect" class="btn btn-success btn-sm"><i class="bi bi-bluetooth"></i> Connect</button>
+      <button id="btnDisconnect" class="btn btn-outline-danger btn-sm" disabled><i class="bi bi-x-circle"></i> Disconnect</button>
+    </div>
+  </div>
+</nav>
 
-      <div class="row fit" style="flex:2">
-        <label class="muted" style="flex:1 1 160px">
-          Transport
-          <select id="transport">
-            <option value="serial" selected>Web Serial (USB/UART)</option>
-            <option value="ble">Web Bluetooth (BLE UART)</option>
-            <option value="sim">Simulator (no hardware)</option>
-          </select>
-        </label>
-
-        <label class="muted">
-          Baud (Serial)
-          <select id="baud">
-            <option value="9600" selected>9600 (HC‑05 via USB‑Serial)</option>
+<main class="container my-4">
+  <!-- Connection settings -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3 align-items-end">
+        <div class="col-6 col-md-3">
+          <label class="form-label">Baud rate</label>
+          <select id="baud" class="form-select">
+            <option value="9600" selected>9600 (HC‑05 default)</option>
             <option value="115200">115200 (Arduino USB)</option>
             <option value="38400">38400 (AT mode)</option>
             <option value="57600">57600</option>
             <option value="19200">19200</option>
           </select>
-        </label>
-
-        <label class="muted">
-          Line ending
-          <select id="lineEnding">
-            <option value="\n" selected>\n</option>
-            <option value="\r\n">\r\n</option>
+        </div>
+        <div class="col-6 col-md-3">
+          <label class="form-label">Line ending</label>
+          <select id="lineEnding" class="form-select">
+            <option value="\n" selected>\n (LF)</option>
+            <option value="\r\n">\r\n (CRLF)</option>
             <option value="">None</option>
           </select>
-        </label>
-      </div>
-
-      <span id="statusPill" class="pill" role="status" aria-live="polite"><span class="dot" id="dot" aria-hidden="true"></span><span id="statusTxt">Disconnected</span></span>
-      <button id="btnConnect" class="btn-primary">🔌 Connect</button>
-      <button id="btnDisconnect" class="btn-danger" disabled>⏏ Disconnect</button>
-    </div>
-
-    <div class="grid">
-      <!-- Process buttons -->
-      <div class="card" style="grid-column:span 6;">
-        <h3>Quick Actions</h3>
-        <div class="btns">
-          <button class="btn-primary" data-cmd="1">1 • Affusion</button>
-          <button class="btn-primary" data-cmd="2">2 • Cleaning</button>
-          <button class="btn-primary" data-cmd="3">3 • Rinse</button>
-          <button class="btn-primary" data-cmd="4">4 • Volume Test</button>
-          <button data-cmd="5">5 • Manual Mode</button>
-          <button data-cmd="6">6 • Status</button>
-          <button class="btn-danger" data-cmd="7">7 • Stop / Close All</button>
-          <button data-cmd="status">Status (text)</button>
-          <button data-cmd="closeall">Close All (text)</button>
         </div>
-        <div class="foot">
-          <span class="muted">Tip: close Arduino Serial Monitor before connecting.</span>
-          <span class="muted">Shortcut: <span class="kbd">/</span> to focus command • <span class="kbd">Ctrl/⌘+K</span> connect</span>
-        </div>
-      </div>
-
-      <!-- Valve control -->
-      <div class="card" style="grid-column:span 6;">
-        <h3>Valve Controls</h3>
-        <div class="row" style="margin-bottom:10px">
-          <input id="valveNum" class="input-grow" inputmode="numeric" pattern="[0-9]*" type="number" placeholder="Valve # (1..21 or 99 for AP)" min="1" max="99" />
-          <button id="btnOpen">Open</button>
-          <button id="btnClose">Close</button>
-          <button class="btn-ghost" id="btnAP">AP Toggle</button>
-        </div>
-        <div class="muted" style="margin-bottom:6px">Preset grid</div>
-        <div class="btns" id="valveGrid" aria-label="Valve presets"></div>
-      </div>
-
-      <!-- Command -->
-      <div class="card" style="grid-column:span 6;">
-        <h3>Command Palette</h3>
-        <div class="row">
-          <input id="cmd" class="input-grow" placeholder='Type commands: open 6, close 6, AFFUSION, RINSE, VOLUME, status' />
-          <button id="btnSend" class="btn-primary">Send ⏎</button>
-        </div>
-        <div class="foot"><span class="muted">Ends with: <span id="endingEcho" class="kbd">\n</span></span><a class="link" href="https://developer.mozilla.org/en-US/docs/Web/API" target="_blank" rel="noreferrer">Browser APIs ↗</a></div>
-      </div>
-
-      <!-- Log -->
-      <div class="card" style="grid-column:span 6;">
-        <h3>Log</h3>
-        <div class="toolbar">
-          <button id="btnCopy">Copy</button>
-          <button id="btnClear" class="btn-ghost">Clear</button>
-        </div>
-        <div id="log" role="log" aria-live="polite"></div>
-      </div>
-
-      <!-- Compatibility helper -->
-      <div class="card" style="grid-column:span 12;">
-        <h3>Compatibility</h3>
-        <div class="row" style="gap:12px">
-          <span class="chip">Serial: Chrome/Edge desktop, many Android (USB‑OTG)</span>
-          <span class="chip">BLE: Chrome/Edge desktop & Android</span>
-          <span class="chip">iOS Safari: neither Serial nor BLE available (use native app/bridge)</span>
+        <div class="col-12 col-md-6">
+          <div class="d-flex gap-2 flex-wrap">
+            <span class="chip">Use Chrome/Edge desktop</span>
+            <span class="chip">Serve via <span class="kbd">http://localhost</span></span>
+            <span class="chip">Close Serial Monitor first</span>
+          </div>
         </div>
       </div>
     </div>
-    <div class="toasts" id="toasts"></div>
   </div>
 
+  <!-- Quick actions -->
+  <div class="row g-4">
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-header fw-semibold"><i class="bi bi-lightning-charge me-2"></i>Quick Actions</div>
+        <div class="card-body">
+          <div class="row g-2">
+            <div class="col-6 col-md-4"><button class="btn btn-primary w-100" data-cmd="1">1 • Affusion</button></div>
+            <div class="col-6 col-md-4"><button class="btn btn-primary w-100" data-cmd="2">2 • Cleaning</button></div>
+            <div class="col-6 col-md-4"><button class="btn btn-primary w-100" data-cmd="3">3 • Rinse</button></div>
+            <div class="col-6 col-md-4"><button class="btn btn-primary w-100" data-cmd="4">4 • Volume Test</button></div>
+            <div class="col-6 col-md-4"><button class="btn btn-outline-primary w-100" data-cmd="6">Status (6)</button></div>
+            <div class="col-6 col-md-4"><button class="btn btn-outline-warning w-100" data-cmd="7">Stop / Close All (7)</button></div>
+            <div class="col-6 col-md-4"><button class="btn btn-outline-secondary w-100" data-cmd="status">status</button></div>
+            <div class="col-6 col-md-4"><button class="btn btn-outline-secondary w-100" data-cmd="closeall">closeall</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Valve controls -->
+    <div class="col-12 col-lg-6">
+      <div class="card h-100">
+        <div class="card-header fw-semibold"><i class="bi bi-valve me-2"></i>Valve Controls</div>
+        <div class="card-body">
+          <div class="row g-3">
+            <div class="col-12 col-sm-6">
+              <label class="form-label">Valve number</label>
+              <input type="number" id="valveNum" class="form-control" placeholder="1..21 or 99 (AP)" min="1" max="99">
+            </div>
+            <div class="col-12 col-sm-6 d-grid gap-2">
+              <button id="btnOpen" class="btn btn-success"><i class="bi bi-toggle-on"></i> Open</button>
+              <button id="btnClose" class="btn btn-danger"><i class="bi bi-toggle-off"></i> Close</button>
+            </div>
+            <div class="col-12 d-grid">
+              <button id="btnAP" class="btn btn-outline-info btn-wide"><i class="bi bi-wrench-adjustable-circle"></i> AP Valve (99): Open / Close</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Custom command + Log -->
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header fw-semibold"><i class="bi bi-terminal me-2"></i>Console</div>
+        <div class="card-body">
+          <div class="row g-3 align-items-end mb-2">
+            <div class="col-12 col-md-9">
+              <label class="form-label">Custom command</label>
+              <input id="cmd" class="form-control" placeholder='e.g. "open 6", "AFFUSION", "status"'>
+            </div>
+            <div class="col-12 col-md-3 d-grid">
+              <button id="btnSend" class="btn btn-secondary"><i class="bi bi-send"></i> Send</button>
+            </div>
+          </div>
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="muted">Log (device output + your commands)</div>
+            <div class="d-flex gap-2">
+              <button id="btnClear" class="btn btn-outline-light btn-sm"><i class="bi bi-trash"></i> Clear</button>
+              <button id="btnCopy" class="btn btn-outline-light btn-sm"><i class="bi bi-clipboard"></i> Copy</button>
+              <button id="btnDownload" class="btn btn-outline-light btn-sm"><i class="bi bi-download"></i> Download</button>
+            </div>
+          </div>
+          <div id="log" class="terminal"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Help -->
+  <div class="mt-4 small muted">
+    <i class="bi bi-info-circle"></i> Tips: Pair HC‑05 in your OS first. For HC‑05 pick <span class="kbd">9600</span>. For Arduino USB pick <span class="kbd">115200</span>. Your Arduino code should read line‑ended commands (we send <span class="kbd">\n</span> by default).
+  </div>
+</main>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
 <script>
-/* ---------------------------------------
-   Utilities & UI
---------------------------------------- */
-const $ = sel => document.querySelector(sel);
-const logBox = $('#log');
-let isConnected = false;
-function log(msg, dir="→"){ const t = new Date().toLocaleTimeString(); logBox.textContent += `[${t}] ${dir} ${msg}\n`; logBox.scrollTop = logBox.scrollHeight; }
-function toast(txt, type=""){ const box = $('#toasts'); const el = document.createElement('div'); el.className = `toast ${type}`; el.textContent = txt; box.appendChild(el); setTimeout(()=>{ el.style.opacity=.0; setTimeout(()=>el.remove(),250)}, 2500); }
-function setStatus(connected, txt){
-  isConnected = connected;
-  $('#statusTxt').textContent = txt || (connected ? "Connected" : "Disconnected");
-  $('#dot').classList.toggle('ok', connected);
-  $('#btnDisconnect').disabled = !connected;
-  $('#btnConnect').disabled = connected;
+/* === Web Serial controller (HC-05 / Arduino) === */
+
+let port = null;
+let reader = null;
+let writer = null;
+let reading = false;
+let logBuffer = "";
+
+const el = id => document.getElementById(id);
+const statusBadge = el('statusBadge');
+const btnConnect = el('btnConnect');
+const btnDisconnect = el('btnDisconnect');
+const baudSel = el('baud');
+const lineSel = el('lineEnding');
+const logBox = el('log');
+
+function setConnectedUI(connected) {
+  statusBadge.className = 'badge ' + (connected ? 'text-bg-success' : 'text-bg-secondary');
+  statusBadge.textContent = connected ? 'Connected' : 'Disconnected';
+  btnConnect.disabled = connected;
+  btnDisconnect.disabled = !connected;
+  document.querySelectorAll('button[data-cmd], #btnOpen, #btnClose, #btnAP, #btnSend')
+    .forEach(b => b.disabled = !connected);
 }
 
-/* ---------------------------------------
-   Transport Abstraction (Serial / BLE / Sim)
---------------------------------------- */
-const Transports = (() => {
-  /* ----- Serial ----- */
-  let serialPort, serialReader, serialWriter, serialKeepReading=false;
-  async function serialConnect(){
-    if(!('serial' in navigator)) throw new Error("Web Serial not supported. Use Chrome/Edge desktop or Android with USB‑OTG.");
-    const baud = parseInt($('#baud').value, 10);
-    serialPort = await navigator.serial.requestPort();
-    await serialPort.open({ baudRate: baud });
-    serialWriter = serialPort.writable.getWriter();
-    serialKeepReading = true;
-    (async ()=>{
-      const dec = new TextDecoder();
-      serialReader = serialPort.readable.getReader();
-      try{
-        while(serialKeepReading){
-          const { value, done } = await serialReader.read();
-          if(done) break;
-          if(value) log(dec.decode(value), "←");
-        }
-      } catch(e){ log("Read error: "+e.message, "!"); }
-      finally{ try{ serialReader && serialReader.releaseLock(); } catch(_){} serialReader = null; }
-    })();
-    return `Serial @ ${baud}`;
+function ts() {
+  const d = new Date();
+  return d.toLocaleTimeString();
+}
+
+function log(msg, dir = '→') {
+  const line = `[${ts()}] ${dir} ${msg}\n`;
+  logBuffer += line;
+  logBox.textContent += line;
+  // Keep the last ~10k chars to avoid runaway memory
+  if (logBuffer.length > 10000) {
+    logBuffer = logBuffer.slice(logBuffer.length - 10000);
+    logBox.textContent = logBuffer;
   }
-  async function serialWrite(text){
-    if(!serialWriter) throw new Error("Not connected (serial).");
-    const ending = $('#lineEnding').value;
-    const payload = (text ?? "").toString() + (ending || "");
-    await serialWriter.write(new TextEncoder().encode(payload));
-    log(payload.replace(/\r/g,"\\r").replace(/\n/g,"\\n"));
-  }
-  async function serialDisconnect(){
-    serialKeepReading = false;
-    try{ serialReader && await serialReader.cancel(); }catch(_){}
-    try{ serialReader && serialReader.releaseLock(); }catch(_){}
-    try{ serialWriter && serialWriter.releaseLock(); }catch(_){}
-    serialReader = null; serialWriter = null;
-    if(serialPort){ try{ await serialPort.close(); }catch(_){}
-      serialPort = null;
+  logBox.scrollTop = logBox.scrollHeight;
+}
+
+async function connect() {
+  try {
+    if (!('serial' in navigator)) {
+      log('Web Serial not supported. Use Chrome/Edge desktop.', '!');
+      return;
     }
-  }
+    // Ask user to choose a port (HC-05 or Arduino USB)
+    port = await navigator.serial.requestPort();
+    await port.open({ baudRate: parseInt(baudSel.value, 10) });
 
-  /* ----- BLE UART (Nordic UART Service) ----- */
-  // NUS UUIDs
-  const NUS_SERVICE = '6e400001-b5a3-f393-e0a9-e50e24dcca9e';
-  const NUS_RX =      '6e400003-b5a3-f393-e0a9-e50e24dcca9e'; // notify from device → app
-  const NUS_TX =      '6e400002-b5a3-f393-e0a9-e50e24dcca9e'; // write from app → device
-  let bleDevice=null, bleServer=null, bleService=null, bleRx=null, bleTx=null;
+    // Writer
+    writer = port.writable.getWriter();
 
-  async function bleConnect(){
-    if(!('bluetooth' in navigator)) throw new Error("Web Bluetooth not supported on this browser.");
-    bleDevice = await navigator.bluetooth.requestDevice({
-      filters: [{ services: [NUS_SERVICE] }],
-      optionalServices: [NUS_SERVICE]
+    // Reader loop
+    reading = true;
+    readLoop().catch(e => {
+      log('Read loop error: ' + e.message, '!');
     });
-    bleDevice.addEventListener('gattserverdisconnected', ()=>{ setStatus(false, "Disconnected"); toast("BLE disconnected","warn"); });
-    bleServer = await bleDevice.gatt.connect();
-    bleService = await bleServer.getPrimaryService(NUS_SERVICE);
-    bleTx = await bleService.getCharacteristic(NUS_TX);
-    bleRx = await bleService.getCharacteristic(NUS_RX);
-    await bleRx.startNotifications();
-    bleRx.addEventListener('characteristicvaluechanged', evt=>{
-      const v = evt.target.value;
-      const dec = new TextDecoder();
-      log(dec.decode(v), "←");
-    });
-    return `BLE UART (${bleDevice.name||'device'})`;
-  }
-  async function bleWrite(text){
-    if(!bleTx) throw new Error("Not connected (BLE).");
-    const ending = $('#lineEnding').value;
-    const payload = (text ?? "").toString() + (ending || "");
-    // Split into 20-byte chunks (BLE ATT limit)
-    const enc = new TextEncoder();
-    const bytes = enc.encode(payload);
-    for(let i=0;i<bytes.length;i+=20){
-      await bleTx.writeValueWithoutResponse(bytes.slice(i, i+20));
-    }
-    log(payload.replace(/\r/g,"\\r").replace(/\n/g,"\\n"));
-  }
-  async function bleDisconnect(){
-    try{
-      if(bleRx){ try{ await bleRx.stopNotifications(); }catch(_){}
-        bleRx.removeEventListener?.('characteristicvaluechanged', ()=>{});
-      }
-    }catch(_){}
-    if(bleDevice && bleDevice.gatt?.connected) bleDevice.gatt.disconnect();
-    bleDevice=bleServer=bleService=bleRx=bleTx=null;
-  }
 
-  /* ----- Simulator ----- */
-  let simTimer=null;
-  async function simConnect(){
-    simTimer = setInterval(()=> log("OK: heartbeat","←"), 1500);
-    return "Simulator";
-  }
-  async function simWrite(text){ log("SIM ECHO: "+text, "←"); }
-  async function simDisconnect(){ clearInterval(simTimer); simTimer=null; }
-
-  return {
-    serial: { connect: serialConnect, write: serialWrite, disconnect: serialDisconnect },
-    ble:    { connect: bleConnect,    write: bleWrite,    disconnect: bleDisconnect    },
-    sim:    { connect: simConnect,    write: simWrite,    disconnect: simDisconnect    }
-  };
-})();
-
-/* ---------------------------------------
-   App Wiring
---------------------------------------- */
-let active = null; // current transport key
-let api = null;    // current transport api
-
-async function connect(){
-  try{
-    const mode = $('#transport').value;
-    active = mode;
-    api = Transports[mode];
-    const label = await api.connect();
-    setStatus(true, `Connected (${label})`);
-    toast("Connected ✓","ok");
-    log(`Connected via ${label}`, "✓");
-
-    // Helpful warning for HC-05 when BLE chosen
-    if(mode==='ble') {
-      toast("Use BLE UART modules (HM‑10 / ESP32 NUS). HC‑05 (classic) is not supported via Web Bluetooth.", "warn");
-    }
-  }catch(e){
-    toast("Connect error: " + e.message, "err");
-    log("Connect error: " + e.message, "!");
+    setConnectedUI(true);
+    log(`Connected @ ${baudSel.value} baud`, '✓');
+  } catch (e) {
+    log('Connect error: ' + e.message, '!');
+    await disconnect();
   }
 }
-async function disconnect(){
-  try{
-    if(api){ await api.disconnect(); }
-    setStatus(false, "Disconnected");
-    toast("Disconnected","warn");
-    log("Disconnected","⏏");
-  }catch(e){
-    toast("Disconnect error: " + e.message, "err");
-    log("Disconnect error: " + e.message, "!");
+
+async function disconnect() {
+  try {
+    reading = false;
+    if (reader) {
+      try { await reader.cancel(); } catch {}
+      reader.releaseLock();
+      reader = null;
+    }
+    if (writer) {
+      writer.releaseLock();
+      writer = null;
+    }
+    if (port) {
+      await port.close();
+      port = null;
+    }
+  } catch (e) {
+    log('Disconnect error: ' + e.message, '!');
   } finally {
-    api = null; active = null;
-  }
-}
-async function sendLine(text){
-  if(!api){ toast("Not connected", "warn"); return; }
-  try{ await api.write(text); }catch(e){
-    toast("Write error: " + e.message, "err");
-    log("Write error: " + e.message, "!");
+    setConnectedUI(false);
+    log('Disconnected', '⏏');
   }
 }
 
-/* ----- UI bindings ----- */
-$('#btnConnect').addEventListener('click', connect);
-$('#btnDisconnect').addEventListener('click', disconnect);
-
-$('#btnSend').addEventListener('click', ()=> sendLine($('#cmd').value));
-$('#cmd').addEventListener('keydown', e=>{ if(e.key==='Enter'){ e.preventDefault(); $('#btnSend').click(); } });
-$('#lineEnding').addEventListener('change', e=> $('#endingEcho').textContent = e.target.value || 'none');
-$('#baud').addEventListener('change', ()=> toast(`Baud set to ${$('#baud').value}`,''));
-$('#btnCopy').addEventListener('click', async ()=>{ await navigator.clipboard.writeText(logBox.textContent || ""); toast("Log copied ✓","ok"); });
-$('#btnClear').addEventListener('click', ()=>{ logBox.textContent=""; });
-
-document.querySelectorAll('[data-cmd]').forEach(btn=>{
-  btn.addEventListener('click', ()=> sendLine(btn.getAttribute('data-cmd')));
-});
-
-$('#btnOpen').addEventListener('click', ()=>{
-  const v = parseInt($('#valveNum').value||"0",10);
-  if(v>0) sendLine("open "+v); else toast("Enter a valve number","warn");
-});
-$('#btnClose').addEventListener('click', ()=>{
-  const v = parseInt($('#valveNum').value||"0",10);
-  if(v>0) sendLine("close "+v); else toast("Enter a valve number","warn");
-});
-$('#btnAP').addEventListener('click', ()=>{
-  const open = confirm("Open AP (OK) or Close AP (Cancel)?");
-  sendLine((open ? "open " : "close ") + "99");
-});
-
-/* Valve preset grid */
-(function buildValveGrid(){
-  const g = $('#valveGrid');
-  for(let i=1;i<=21;i++){
-    const b = document.createElement('button');
-    b.textContent = `Open ${i}`;
-    b.setAttribute('aria-label', `Open valve ${i}`);
-    b.addEventListener('click', ()=> sendLine('open '+i));
-    g.appendChild(b);
+async function readLoop() {
+  const textDecoder = new TextDecoder();
+  reader = port.readable.getReader();
+  while (reading) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    if (value) {
+      const chunk = textDecoder.decode(value);
+      // Show each chunk as it arrives
+      log(chunk, '←');
+    }
   }
-  const ap = document.createElement('button');
-  ap.textContent = 'Open AP (99)'; ap.className='btn-ghost';
-  ap.addEventListener('click',()=>sendLine('open 99'));
-  g.appendChild(ap);
-})();
+}
 
-/* Keyboard shortcuts */
-document.addEventListener('keydown', e=>{
-  if(e.key==='/' && e.target.tagName!=='INPUT' && e.target.tagName!=='TEXTAREA'){ e.preventDefault(); $('#cmd').focus(); }
-  if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='k'){ e.preventDefault(); isConnected?$('#btnDisconnect').click():$('#btnConnect').click(); }
-});
-
-/* Browser support hints */
-(function supportHints(){
-  const serialOk = 'serial' in navigator;
-  const bleOk = 'bluetooth' in navigator;
-  if(!serialOk && !bleOk){
-    setStatus(false, "Unsupported browser");
-    toast("Neither Web Serial nor Web Bluetooth supported here. Use Chrome/Edge.", "err");
+async function sendLine(text) {
+  if (!writer) { log('Not connected', '!'); return; }
+  const ending = lineSel.value;
+  const payload = (text ?? '').toString() + (ending || '');
+  try {
+    await writer.write(new TextEncoder().encode(payload));
+    log(payload.replace(/\r/g,'\\r').replace(/\n/g,'\\n'));
+  } catch (e) {
+    log('Write error: ' + e.message, '!');
   }
-})();
+}
+
+function bindUI() {
+  btnConnect.addEventListener('click', connect);
+  btnDisconnect.addEventListener('click', disconnect);
+
+  document.querySelectorAll('[data-cmd]').forEach(b => {
+    b.addEventListener('click', () => sendLine(b.getAttribute('data-cmd')));
+  });
+
+  el('btnOpen').addEventListener('click', () => {
+    const v = parseInt(el('valveNum').value || '0', 10);
+    if (v > 0) sendLine('open ' + v);
+  });
+  el('btnClose').addEventListener('click', () => {
+    const v = parseInt(el('valveNum').value || '0', 10);
+    if (v > 0) sendLine('close ' + v);
+  });
+  el('btnAP').addEventListener('click', async () => {
+    const goOpen = confirm('Open AP (OK) or Close AP (Cancel)?');
+    await sendLine((goOpen ? 'open ' : 'close ') + '99');
+  });
+  el('btnSend').addEventListener('click', () => {
+    const c = el('cmd').value;
+    if (c.trim().length) sendLine(c);
+  });
+
+  // Log helpers
+  el('btnClear').addEventListener('click', () => { logBuffer = ""; logBox.textContent = ""; });
+  el('btnCopy').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText(logBuffer); } catch {}
+  });
+  el('btnDownload').addEventListener('click', () => {
+    const blob = new Blob([logBuffer], { type: 'text/plain' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `controller-log-${Date.now()}.txt`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  });
+
+  // Handle cable/BT unplug events
+  if ('serial' in navigator) {
+    navigator.serial.addEventListener('disconnect', async (e) => {
+      if (port && e.target === port) {
+        log('Port disconnected', '!');
+        await disconnect();
+      }
+    });
+    navigator.serial.addEventListener('connect', () => {
+      log('Port connected (available to open)', 'i');
+    });
+  }
+
+  // Initial state
+  setConnectedUI(false);
+}
+
+bindUI();
 </script>
 </body>
 </html>
